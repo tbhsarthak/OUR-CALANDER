@@ -1,11 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Our Calendar – Partner</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Calendar - Partner View</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fff0f5;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    header {
+      background-color: #ff8fa3;
+      color: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+
+    .container {
+      padding: 30px 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 500px;
+      margin: 20px auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: #e75480;
+    }
+
+    .highlight {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .button {
+      background-color: #e75480;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    .button:hover {
+      background-color: #d63d6e;
+    }
+
+    .section-title {
+      font-size: 1.4em;
+      color: #333;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
-<body style="text-align: center; font-family: Arial; padding: 50px; background: #e6f7ff;">
-  <h1>Welcome to the Partner's Dashboard</h1>
-  <p>This is where you’ll stay updated, send love, and learn about menstrual health.</p>
+<body>
+  <header>
+    <h1>Partner Name ❤ Partner</h1>
+    <p>Paired for X days</p>
+  </header>
+
+  <div class="container">
+
+    <div class="card">
+      <h2>Today's Cycle Update</h2>
+      <p><span class="highlight">Cycle Day:</span> [Dynamic]</p>
+      <p><span class="highlight">Status:</span> [Dynamic]</p>
+      <p><span class="highlight">Pregnancy Risk:</span> [Dynamic]</p>
+      <p><span class="highlight">Mood Today:</span> [Dynamic]</p>
+    </div>
+
+    <div class="card">
+      <h2>How You Can Support</h2>
+      <ul>
+        <li>Be gentle and understanding 💬</li>
+        <li>Offer a warm drink or a kind word ☕</li>
+        <li>Check in without pushing too much 🤝</li>
+      </ul>
+    </div>
+
+    <div class="card" id="factCard">
+      <h2>Learn Something New 💡</h2>
+      <p id="factText">Loading...</p>
+    </div>
+
+    <div class="card">
+      <h2>Ask Our Bot 🤖</h2>
+      <p>Got questions about periods, symptoms, or how to help her?</p>
+      <button class="button" onclick="alert('Bot feature coming soon!')">Chat with AI</button>
+    </div>
+
+  </div>
+
+  <script>
+    const facts = [
+      "During her period, hormone levels fluctuate and may cause mood swings, cramps, and fatigue.",
+      "A typical menstrual cycle lasts about 28 days, but it can range from 21 to 35 days.",
+      "Women lose about 30 to 40 ml of blood during menstruation on average.",
+      "Painful periods are called dysmenorrhea, and they affect around 80% of women.",
+      "Period symptoms are influenced by real hormonal changes — not just emotions.",
+      "A woman can still get pregnant during her period, although it's less likely.",
+      "Ovulation usually happens around the 14th day of a 28-day cycle."
+    ];
+
+    const randomIndex = Math.floor(Math.random() * facts.length);
+    const selectedFact = facts[randomIndex];
+
+    document.getElementById("factText").innerText = selectedFact;
+  </script>
 </body>
 </html>
