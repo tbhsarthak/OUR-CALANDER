@@ -25,7 +25,7 @@
 
 ## 📦 Project Status
 
-This project is currently in development and being built step by step with full beginner guidance.
+This project is currently in development.
 
 ---
 
