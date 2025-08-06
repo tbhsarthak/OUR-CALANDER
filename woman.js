@@ -35,7 +35,21 @@ document.addEventListener('DOMContentLoaded', function () {
     
     if (document.getElementById('cycleDay')) {
         initializeWomanDashboard();
+        checkPartnerConnection();
     }
+
+    // Initialize "Start Partner Sync" button with retry
+    function initializeSyncButton() {
+        const startPartnerSyncBtn = document.getElementById('startPartnerSync');
+        if (startPartnerSyncBtn) {
+            startPartnerSyncBtn.addEventListener('click', showSyncOptions);
+            console.log('Start Partner Sync button initialized successfully');
+        } else {
+            console.warn('Start Partner Sync button not found in DOM. Retrying in 1s...');
+            setTimeout(initializeSyncButton, 1000); // Retry after 1 second
+        }
+    }
+    initializeSyncButton();
 
     const header = document.querySelector('.header');
     if (header) {
@@ -56,6 +70,19 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(showUserSetup, 500);
     }
 });
+
+function showSyncOptions() {
+    const syncModal = document.getElementById('syncModal');
+    if (syncModal) {
+        syncModal.classList.remove('hidden');
+        generateNewSyncCode();
+        checkPartnerConnection();
+        console.log('Sync modal opened successfully');
+    } else {
+        console.error('Sync modal not found in DOM. Ensure <div id="syncModal"> exists in woman.html.');
+        showNotification('Sync modal not available. Please check the page structure.', 'warning');
+    }
+}
 
 // USER SETUP AND PROFILE MANAGEMENT
 function showUserSetup() {
@@ -220,6 +247,8 @@ function saveUserSetup() {
 }
 
 function loadUserProfile() {
+
+    checkPartnerConnection();
     const saved = loadFromStorage('user_profile');
     if (saved) {
         userProfile = { ...userProfile, ...saved };
@@ -1071,6 +1100,15 @@ if (typeof window !== 'undefined') {
         loadFromStorage,
         saveUserData,
         clearAllData,
+        showSyncOptions,
+        closeSyncModal,
+        generateNewSyncCode,
+        copySyncCodeToClipboard,
+        activateSync,
+        refreshPartnerSync,
+        disconnectPartner,
+        updatePartnerSyncUI,
+        checkPartnerConnection,
         cycleData,
         userProfile,
         selectedMood,
@@ -1091,3 +1129,231 @@ Paira Color Guide:
 console.log('Paira app initialized with personalized user data support');
 
 
+// Add these functions to your existing woman.js file
+
+// PARTNER SYNC FUNCTIONALITY
+function showSyncOptions() {
+    const syncModal = document.getElementById('syncModal');
+    if (syncModal) {
+        syncModal.classList.remove('hidden');
+        generateNewSyncCode();
+        checkPartnerConnection();
+    } else {
+        console.error('Sync modal not found in DOM');
+        showNotification('Sync modal not available. Please check the page structure.', 'warning');
+    }
+}
+function closeSyncModal() {
+    const syncModal = document.getElementById('syncModal');
+    if (syncModal) {
+        syncModal.classList.add('hidden');
+    }
+}
+
+function generateNewSyncCode() {
+    const syncCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const syncCodeElement = document.getElementById('generatedSyncCode');
+    if (syncCodeElement) {
+        syncCodeElement.textContent = syncCode;
+    }
+    
+    // Save the sync code to localStorage
+    saveToStorage('sync_code', syncCode);
+    saveToStorage('sync_timestamp', Date.now().toString());
+    
+    return syncCode;
+}
+
+function copySyncCodeToClipboard() {
+    const syncCodeElement = document.getElementById('generatedSyncCode');
+    if (syncCodeElement) {
+        const syncCode = syncCodeElement.textContent;
+        navigator.clipboard.writeText(syncCode).then(function() {
+            showNotification('Sync code copied to clipboard!', 'success');
+        }).catch(function(err) {
+            console.error('Could not copy text: ', err);
+            showNotification('Could not copy code. Please copy manually.', 'warning');
+        });
+    }
+}
+
+function activateSync() {
+    const syncCodeElement = document.getElementById('generatedSyncCode');
+    if (syncCodeElement) {
+        const syncCode = syncCodeElement.textContent;
+        
+        // Save sync activation
+        const syncData = {
+            code: syncCode,
+            isActive: true,
+            activatedAt: new Date().toISOString(),
+            userName: userProfile.name
+        };
+        
+        saveToStorage('sync_active', syncData);
+        
+        // Update UI to show sync is active
+        updatePartnerSyncUI(true);
+        
+        showNotification('Partner sync activated! Share the code with your partner.', 'success');
+        closeSyncModal();
+        
+        // Update sync status
+        updateSyncStatus('Partner sync activated - waiting for connection');
+    }
+}
+
+function refreshPartnerSync() {
+    // Check for partner connection
+    const partnerConnection = loadFromStorage('partner_connection');
+    if (partnerConnection) {
+        const partnerData = {
+            cycleDay: cycleData.currentDay,
+            phase: cycleData.phase,
+            nextPeriodDays: cycleData.cycleLength - cycleData.currentDay,
+            pregnancyRisk: calculatePregnancyRisk(cycleData.currentDay, cycleData.cycleLength),
+            mood: selectedMood || 'neutral',
+            symptoms: getCurrentSymptoms(),
+            lastUpdated: new Date().toISOString()
+        };
+        
+        saveToStorage('partner_data', partnerData);
+        showNotification('Sync data refreshed!', 'success');
+        updateSyncStatus('Data synced with partner');
+    } else {
+        showNotification('No partner connection found.', 'warning');
+    }
+}
+
+function disconnectPartner() {
+    if (confirm('Are you sure you want to disconnect from your partner? They will need a new sync code to reconnect.')) {
+        // Clear partner sync data
+        localStorage.removeItem('paira_partner_connection');
+        localStorage.removeItem('paira_partner_data');
+        localStorage.removeItem('paira_sync_active');
+        localStorage.removeItem('paira_sync_code');
+        localStorage.removeItem('paira_support_messages');
+        
+        // Update UI
+        updatePartnerSyncUI(false);
+        updateSyncStatus('Partner disconnected');
+        showNotification('Partner sync disconnected.', 'info');
+        
+        // Reset partner info in profile
+        userProfile.isPaired = false;
+        saveUserData();
+        updatePersonalizedUI();
+    }
+}
+
+function updatePartnerSyncUI(isConnected) {
+    const syncConnectedView = document.getElementById('syncConnectedView');
+    const syncDisconnectedView = document.getElementById('syncDisconnectedView');
+    const connectedPartnerName = document.getElementById('connectedPartnerName');
+    
+    if (isConnected) {
+        if (syncConnectedView) syncConnectedView.classList.remove('hidden');
+        if (syncDisconnectedView) syncDisconnectedView.classList.add('hidden');
+        if (connectedPartnerName) connectedPartnerName.textContent = userProfile.partnerName || 'Your Partner';
+    } else {
+        if (syncConnectedView) syncConnectedView.classList.add('hidden');
+        if (syncDisconnectedView) syncDisconnectedView.classList.remove('hidden');
+    }
+}
+
+function checkPartnerConnection() {
+    const partnerConnection = loadFromStorage('partner_connection');
+    const syncActive = loadFromStorage('sync_active');
+    
+    if (partnerConnection) {
+        updatePartnerSyncUI(true);
+        userProfile.isPaired = true;
+        if (partnerConnection.name) {
+            userProfile.partnerName = partnerConnection.name;
+        }
+        saveUserData();
+        updatePersonalizedUI();
+    } else if (syncActive && syncActive.isActive) {
+        // Sync is active but no partner connected yet
+        updatePartnerSyncUI(false);
+    } else {
+        updatePartnerSyncUI(false);
+    }
+}
+
+function getCurrentSymptoms() {
+    const currentDay = cycleData.days.find(day => day.date === cycleData.currentDay);
+    if (currentDay && currentDay.symptoms) {
+        return Object.entries(currentDay.symptoms)
+            .map(([symptom, intensity]) => `${symptom}: ${intensity}`)
+            .join(', ');
+    }
+    return 'None reported';
+}
+
+// Update the existing initializeWomanDashboard function to include sync check
+// Add this line to your existing initializeWomanDashboard function:
+// checkPartnerConnection();
+
+// Update the loadUserProfile function to include sync check
+// Add this line to your existing loadUserProfile function after loading data:
+// checkPartnerConnection();
+
+// Override the existing notifyPartner function to include sync data
+function notifyPartner(type, data) {
+    console.log('Syncing with partner:', type, data);
+    
+    // Update partner data for sync
+    const partnerData = {
+        cycleDay: cycleData.currentDay,
+        phase: cycleData.phase,
+        nextPeriodDays: Math.max(0, cycleData.cycleLength - cycleData.currentDay),
+        pregnancyRisk: calculatePregnancyRisk(cycleData.currentDay, cycleData.cycleLength),
+        mood: selectedMood || getMoodFromData(),
+        symptoms: getCurrentSymptoms(),
+        lastUpdated: new Date().toISOString(),
+        syncType: type,
+        syncData: data
+    };
+    
+    saveToStorage('partner_data', partnerData);
+    
+    setTimeout(() => {
+        updateSyncStatus(`${type} synced with partner`);
+    }, 500);
+}
+
+function getMoodFromData() {
+    // Try to get the most recent mood or return neutral
+    return selectedMood || 'neutral';
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const syncModal = document.getElementById('syncModal');
+    if (syncModal && !syncModal.classList.contains('hidden')) {
+        const modalContent = syncModal.querySelector('.sync-modal-content');
+        if (modalContent && !modalContent.contains(event.target)) {
+            closeSyncModal();
+        }
+    }
+});
+
+// Add these functions to the global PairaApp object
+// In woman.js, replace the existing PairaApp assignment
+if (typeof window !== 'undefined') {
+    window.PairaApp = window.PairaApp || {};
+    window.PairaApp = {
+        ...window.PairaApp,
+        showSyncOptions,
+        closeSyncModal,
+        generateNewSyncCode,
+        copySyncCodeToClipboard,
+        activateSync,
+        refreshPartnerSync,
+        disconnectPartner,
+        updatePartnerSyncUI,
+        checkPartnerConnection
+    };
+    console.log('PairaApp initialized:', window.PairaApp);
+}

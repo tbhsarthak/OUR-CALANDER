@@ -5,6 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paira - Your Wellness Dashboard</title>
     <link rel="stylesheet" href="woman.css">
+    <style>
+        .sync-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .sync-modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: center;
+        }
+        .hidden {
+            display: none;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+        .btn-secondary {
+            background: #666;
+            color: white;
+        }
+        .btn-sync-primary {
+            background: #764ba2;
+            color: white;
+        }
+        .sync-code-display {
+            margin: 15px 0;
+        }
+        .sync-code-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #764ba2;
+            margin: 10px 0;
+        }
+        .sync-steps {
+            text-align: left;
+            margin: 15px 0;
+        }
+        .sync-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -12,10 +72,32 @@
         <div class="header">
             <h1>👋 Welcome!</h1>
             <p>Your wellness journey continues</p>
-            <div class="sync-status" id="syncStatus">🔗 Synced with Alex</div>
+            <div class="sync-status" id="syncStatus">👤 Solo mode</div>
         </div>
 
         <div class="dashboard-grid">
+            <!-- Partner Sync Card -->
+            <div class="card" id="partnerSyncCard">
+                <h3>🔗 Partner Sync</h3>
+                <div id="syncConnectedView" class="partner-status partner-connected hidden">
+                    <h4>💕 Connected with <span id="connectedPartnerName">Partner</span></h4>
+                    <p>Your cycle data is being shared securely</p>
+                    <div class="sync-actions">
+                        <button class="btn btn-secondary" onclick="PairaApp.refreshPartnerSync()" style="width: auto; padding: 8px 16px;">🔄 Refresh</button>
+                        <button class="btn btn-secondary" onclick="PairaApp.disconnectPartner()" style="width: auto; padding: 8px 16px; background: #ff4444; color: white;">🔌 Disconnect</button>
+                    </div>
+                </div>
+                
+                <div id="syncDisconnectedView" class="partner-status partner-disconnected">
+                    <h4>👥 Share Your Cycle with Partner</h4>
+                    <p>Generate a sync code to share your cycle updates with your partner</p>
+                    <button class="btn" onclick="window.location.href='sync.html'" style="margin-top: 15px;">🔗 Start Partner Sync</button>
+
+
+
+                </div>
+            </div>
+
             <!-- Calendar View -->
             <div class="card">
                 <h3>📅 Cycle Calendar</h3>
@@ -60,49 +142,48 @@
             <div class="card">
                 <h3>⚡ Quick Log</h3>
                 <div class="quick-log">
-                    <div class="log-btn" onclick="toggleLog(this)" data-type="flow">🩸<br>Flow</div>
-                    <div class="log-btn" onclick="toggleLog(this)" data-type="cramps">😣<br>Cramps</div>
-                    <div class="log-btn" onclick="toggleLog(this)" data-type="bloating">🤰<br>Bloating</div>
-                    <div class="log-btn" onclick="toggleLog(this)" data-type="headache">🤕<br>Headache</div>
-                    <div class="log-btn" onclick="toggleLog(this)" data-type="mood">😊<br>Mood</div>
-                    <div class="log-btn" onclick="toggleLog(this)" data-type="energy">⚡<br>Energy</div>
-                    <div class="log-btn" onclick="toggleLog(this)" data-type="sleep">😴<br>Sleep</div>
-                    <div class="log-btn" onclick="toggleLog(this)" data-type="exercise">🏃‍♀️<br>Exercise</div>
+                    <div class="log-btn" onclick="PairaApp.toggleLog(this)" data-type="flow">🩸<br>Flow</div>
+                    <div class="log-btn" onclick="PairaApp.toggleLog(this)" data-type="cramps">😣<br>Cramps</div>
+                    <div class="log-btn" onclick="PairaApp.toggleLog(this)" data-type="bloating">🤰<br>Bloating</div>
+                    <div class="log-btn" onclick="PairaApp.toggleLog(this)" data-type="headache">🤕<br>Headache</div>
+                    <div class="log-btn" onclick="PairaApp.toggleLog(this)" data-type="mood">😊<br>Mood</div>
+                    <div class="log-btn" onclick="PairaApp.toggleLog(this)" data-type="energy">⚡<br>Energy</div>
+                    <div class="log-btn" onclick="PairaApp.toggleLog(this)" data-type="sleep">😴<br>Sleep</div>
+                    <div class="log-btn" onclick="PairaApp.toggleLog(this)" data-type="exercise">🏃‍♀️<br>Exercise</div>
                 </div>
-                <button class="btn" onclick="saveQuickLog()">Save Today's Log</button>
+                <button class="btn" onclick="PairaApp.saveQuickLog()">Save Today's Log</button>
             </div>
 
             <!-- Mood & Symptoms -->
             <div class="card">
                 <h3>💭 Today's Mood</h3>
                 <div class="mood-selector">
-                    <span class="mood-emoji" onclick="selectMood(this)" data-mood="amazing">🤩</span>
-                    <span class="mood-emoji" onclick="selectMood(this)" data-mood="happy">😊</span>
-                    <span class="mood-emoji" onclick="selectMood(this)" data-mood="neutral">😐</span>
-                    <span class="mood-emoji" onclick="selectMood(this)" data-mood="low">😔</span>
-                    <span class="mood-emoji" onclick="selectMood(this)" data-mood="irritated">😤</span>
+                    <span class="mood-emoji" onclick="PairaApp.selectMood(this)" data-mood="amazing">🤩</span>
+                    <span class="mood-emoji" onclick="PairaApp.selectMood(this)" data-mood="happy">😊</span>
+                    <span class="mood-emoji" onclick="PairaApp.selectMood(this)" data-mood="neutral">😐</span>
+                    <span class="mood-emoji" onclick="PairaApp.selectMood(this)" data-mood="low">😔</span>
+                    <span class="mood-emoji" onclick="PairaApp.selectMood(this)" data-mood="irritated">😤</span>
                 </div>
                 <div class="input-group">
                     <label>Notes (optional):</label>
                     <textarea placeholder="How are you feeling today?" rows="3" id="moodNotes"></textarea>
                 </div>
-                <button class="btn" onclick="saveMood()">Update Mood</button>
+                <button class="btn" onclick="PairaApp.saveMood()">Update Mood</button>
             </div>
 
-           <!-- Partner Messages -->
-<div class="card" id="partnerMessages">
-    <h3>💝 From Your Partner</h3>
-    <div class="partner-messages" id="messageContainer">
-        <!-- Messages populated dynamically -->
-        <div class="message-item" id="noMessages" style="display: none;">
-            <p>No messages yet. Your partner can send you a message to show their support! 💌</p>
-        </div>
-    </div>
-    <div class="message-input">
-        <input type="text" placeholder="Send a message to your partner..." id="partnerMessageInput">
-        <button class="chat-send" onclick="sendPartnerMessage()">➤</button>
-    </div>
-</div>
+            <!-- Partner Messages -->
+            <div class="card" id="partnerMessages">
+                <h3>💝 From Your Partner</h3>
+                <div class="partner-messages" id="messageContainer">
+                    <div class="message-item" id="noMessages" style="display: none;">
+                        <p>No messages yet. Your partner can send you a message to show their support! 💌</p>
+                    </div>
+                </div>
+                <div class="message-input">
+                    <input type="text" placeholder="Send a message to your partner..." id="partnerMessageInput">
+                    <button class="chat-send" onclick="PairaApp.sendPartnerMessage()">➤</button>
+                </div>
+            </div>
 
             <!-- AI Health Assistant -->
             <div class="card">
@@ -113,8 +194,8 @@
                     </div>
                 </div>
                 <div class="chat-input">
-                    <input type="text" placeholder="Ask me anything..." id="aiInput" onkeypress="handleAIEnter(event)">
-                    <button class="chat-send" onclick="sendAIMessage()">➤</button>
+                    <input type="text" placeholder="Ask me anything..." id="aiInput" onkeypress="PairaApp.handleAIEnter(event)">
+                    <button class="chat-send" onclick="PairaApp.sendAIMessage()">➤</button>
                 </div>
             </div>
 
@@ -132,7 +213,7 @@
                 <div class="analysis-data">
                     <p><strong>Average Period Length:</strong> <span id="avgPeriodLength">7 days</span></p>
                     <p><strong>Average Cycle Length:</strong> <span id="avgCycleLength">31 days</span></p>
-                    <p><strong>Sync Status:</strong> <span id="syncInfo">Synced with Alex at 06:37 PM IST, Aug 06, 2025</span></p>
+                    <p><strong>Sync Status:</strong> <span id="syncInfo">Solo mode - Add partner to sync</span></p>
                 </div>
             </div>
 
@@ -160,12 +241,61 @@
                         <label>Add Note:</label>
                         <textarea id="editNote" rows="2" placeholder="Add a note..."></textarea>
                     </div>
-                    <button class="btn" onclick="saveEditOptions()">Save Changes</button>
+                    <button class="btn" onclick="PairaApp.saveEditOptions()">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="woman.js"></script>
+    <!-- Sync Modal -->
+    <div id="syncModal" class="sync-modal hidden">
+        <div class="sync-modal-content">
+            <h3 style="color: #764ba2; text-align: center; margin-bottom: 20px;">🔗 Partner Sync Setup</h3>
+            
+            <div id="syncDisconnectedView">
+                <div class="sync-code-display">
+                    <h4>Your Sync Code</h4>
+                    <div class="sync-code-number" id="generatedSyncCode">000000</div>
+                    <p style="margin: 10px 0; font-size: 14px;">Share this code with your partner</p>
+                    <div class="sync-actions">
+                        <button class="btn-sync-primary" onclick="PairaApp.generateNewSyncCode()">🔄 New Code</button>
+                        <button class="btn-sync-primary" onclick="PairaApp.copySyncCodeToClipboard()">📋 Copy</button>
+                    </div>
+                </div>
+                
+                <div class="sync-steps">
+                    <h4 style="color: #667eea;">📱 How to sync:</h4>
+                    <ol>
+                        <li>Share the 6-digit code above with your partner</li>
+                        <li>Have them visit: <strong>your-app-url/partner.html</strong></li>
+                        <li>They'll enter this code and their name</li>
+                        <li>Once connected, they can see your cycle updates!</li>
+                    </ol>
+                </div>
+                
+                <div style="background: #f8f9ff; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <p style="margin: 0; color: #666; font-size: 14px;">
+                        <strong>🔐 Privacy:</strong> Only basic cycle information (day, phase, next period) is shared. Personal notes and detailed symptoms remain private.
+                    </p>
+                </div>
+            </div>
+
+            <div id="syncConnectedView" class="hidden">
+                <h4>💕 Connected with <span id="connectedPartnerName">Your Partner</span></h4>
+                <p>Your cycle data is being shared securely</p>
+                <div class="sync-actions">
+                    <button class="btn btn-secondary" onclick="PairaApp.refreshPartnerSync()">🔄 Refresh</button>
+                    <button class="btn btn-secondary" onclick="PairaApp.disconnectPartner()" style="background: #ff4444; color: white;">🔌 Disconnect</button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="PairaApp.closeSyncModal()" style="width: auto; padding: 10px 20px;">Close</button>
+                <button class="btn btn-sync-primary" onclick="PairaApp.activateSync()" style="width: auto; padding: 10px 20px;">✅ Activate Sync</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="woman.js" defer></script>
 </body>
 </html>
