@@ -7,7 +7,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #edb0ed 0%, #f44579 100%);
     min-height: 100vh;
     color: #333;
 }
@@ -20,7 +20,7 @@ body {
 
 /* Header Styles */
 .header {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgb(255, 255, 255);
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 20px;
@@ -212,7 +212,7 @@ body {
 
 /* Button Styles */
 .btn {
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, #667eea, #b593d6);
     color: white;
     border: none;
     padding: 12px 30px;
