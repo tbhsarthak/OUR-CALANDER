@@ -16,6 +16,29 @@
         </div>
 
         <div class="dashboard-grid">
+            <!-- Calendar View -->
+            <div class="card">
+                <h3>📅 Cycle Calendar</h3>
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <span>Aug</span>
+                        <button class="edit-btn">✏️ Edit</button>
+                    </div>
+                    <div class="calendar-days">
+                        <div class="day">Sun</div>
+                        <div class="day">Mon</div>
+                        <div class="day">Tue</div>
+                        <div class="day">Wed</div>
+                        <div class="day">Thu</div>
+                        <div class="day">Fri</div>
+                        <div class="day">Sat</div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Days will be populated dynamically via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Cycle Tracker Card -->
             <div class="card">
                 <h3>🌙 Cycle Tracker</h3>
@@ -81,19 +104,18 @@
             </div>
 
             <!-- AI Health Assistant -->
-<div class="card">
-    <h3>🤖 Ask Paira AI</h3>
-    <div class="ai-chat" id="aiChat">
-        <div class="chat-message ai-message">
-            <p>Hi! I'm your personal health assistant. Ask me anything about menstrual health, symptoms, or wellness tips! 💙</p>
-        </div>
-    </div>
-    <div class="chat-input">
-        <input type="text" placeholder="Ask me anything..." id="aiInput" onkeypress="handleAIEnter(event)">
-        <button class="chat-send" onclick="sendAIMessage()">➤</button>
-    </div>
-</div>
-
+            <div class="card">
+                <h3>🤖 Ask Paira AI</h3>
+                <div class="ai-chat" id="aiChat">
+                    <div class="chat-message ai-message">
+                        <p>Hi! I'm your personal health assistant. Ask me anything about menstrual health, symptoms, or wellness tips! 💙</p>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" placeholder="Ask me anything..." id="aiInput" onkeypress="handleAIEnter(event)">
+                    <button class="chat-send" onclick="sendAIMessage()">➤</button>
+                </div>
+            </div>
 
             <!-- Insights & Tips -->
             <div class="card insights">

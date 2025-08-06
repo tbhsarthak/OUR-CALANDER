@@ -7,7 +7,41 @@ let cycleData = {
     currentDay: 12,
     cycleLength: 28,
     periodLength: 5,
-    phase: 'Luteal Phase'
+    phase: 'Luteal Phase',
+    currentMonth: 'August 2025',
+    days: [
+        { date: 1, type: 'period' },
+        { date: 2, type: 'period' },
+        { date: 3, type: 'period' },
+        { date: 4, type: 'period' },
+        { date: 5, type: 'period' },
+        { date: 6, type: 'today' },
+        { date: 7, type: '' },
+        { date: 8, type: '' },
+        { date: 9, type: '' },
+        { date: 10, type: '' },
+        { date: 11, type: 'fertile' },
+        { date: 12, type: 'fertile' },
+        { date: 13, type: '' },
+        { date: 14, type: '' },
+        { date: 15, type: '' },
+        { date: 16, type: '' },
+        { date: 17, type: '' },
+        { date: 18, type: '' },
+        { date: 19, type: '' },
+        { date: 20, type: '' },
+        { date: 21, type: '' },
+        { date: 22, type: '' },
+        { date: 23, type: '' },
+        { date: 24, type: '' },
+        { date: 25, type: '' },
+        { date: 26, type: '' },
+        { date: 27, type: '' },
+        { date: 28, type: '' },
+        { date: 29, type: '' },
+        { date: 30, type: '' },
+        { date: 31, type: '' }
+    ]
 };
 
 let selectedMood = '';
@@ -21,12 +55,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.querySelector('.mood-tip')) {
         initializePartnerDashboard();
     }
+
+    // Add edit button event listener
+    const editBtn = document.querySelector('.edit-btn');
+    if (editBtn) {
+        editBtn.addEventListener('click', handleEditClick);
+    }
 });
 
 function initializeWomanDashboard() {
     updateCycleDisplay();
     updateProgressRing();
     loadDailyInsights();
+    renderCalendar();
 }
 
 function updateCycleDisplay() {
@@ -50,6 +91,40 @@ function updateProgressRing() {
     const circumference = 2 * Math.PI * 52;
     const progress = (cycleData.currentDay / cycleData.cycleLength) * circumference;
     progressCircle.style.strokeDasharray = `${progress} ${circumference}`;
+}
+
+function renderCalendar() {
+    const calendarGrid = document.getElementById('calendarGrid');
+    if (!calendarGrid) return;
+
+    calendarGrid.innerHTML = '';
+    cycleData.days.forEach(day => {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = day.date;
+        if (day.type === 'period') dayElement.classList.add('period');
+        if (day.type === 'fertile') dayElement.classList.add('fertile');
+        if (day.type === 'today') dayElement.classList.add('today');
+        dayElement.addEventListener('click', () => handleDayClick(day.date));
+        calendarGrid.appendChild(dayElement);
+    });
+}
+
+function handleDayClick(day) {
+    const selectedDay = cycleData.days.find(d => d.date === day);
+    if (!selectedDay) return;
+
+    const newType = prompt('Set status for day ' + day + ' (period/fertile/leave blank):');
+    if (newType) {
+        selectedDay.type = newType.toLowerCase() === 'period' || newType.toLowerCase() === 'fertile' ? newType.toLowerCase() : '';
+        renderCalendar(); // Re-render to reflect changes
+        saveUserData();
+        showNotification(`Day ${day} updated to ${newType || 'normal'}.`, 'success');
+    }
+}
+
+function handleEditClick() {
+    showNotification('Click a day on the calendar to edit its status (period, fertile, or normal).', 'info');
 }
 
 function toggleLog(element) {
@@ -168,7 +243,6 @@ function generateAIResponse(message) {
 
     return responses['default'];
 }
-
 
 // =====================
 // OTHER FUNCTIONS BELOW
@@ -386,3 +460,12 @@ if (typeof window !== 'undefined') {
         quickLogs
     };
 }
+
+// Color Representation Explanation (for UI reference)
+const colorInfo = `
+- **Pink (#ff6b6b)**: Represents period days, indicating the menstrual phase.
+- **Yellow (#ffeb3b)**: Represents fertile days, highlighting the ovulation window.
+- **Green (#4CAF50)**: Indicates the current day for easy reference.
+- **Gray (default)**: Represents normal days with no specific cycle event.
+`;
+console.log(colorInfo); // This can be logged or displayed in a tooltip/info section if desired
