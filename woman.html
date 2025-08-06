@@ -89,11 +89,20 @@
                 <button class="btn" onclick="saveMood()">Update Mood</button>
             </div>
 
-            <!-- Partner Messages -->
-            <div class="card" id="partnerMessages">
-                <h3>💝 From Your Partner</h3>
-                <!-- Messages populated dynamically -->
-            </div>
+           <!-- Partner Messages -->
+<div class="card" id="partnerMessages">
+    <h3>💝 From Your Partner</h3>
+    <div class="partner-messages" id="messageContainer">
+        <!-- Messages populated dynamically -->
+        <div class="message-item" id="noMessages" style="display: none;">
+            <p>No messages yet. Your partner can send you a message to show their support! 💌</p>
+        </div>
+    </div>
+    <div class="message-input">
+        <input type="text" placeholder="Send a message to your partner..." id="partnerMessageInput">
+        <button class="chat-send" onclick="sendPartnerMessage()">➤</button>
+    </div>
+</div>
 
             <!-- AI Health Assistant -->
             <div class="card">

@@ -352,6 +352,62 @@ function generatePersonalizedInsights() {
     });
 }
 
+// Sample array to store partner messages (in a real app, this could come from a backend)
+let partnerMessages = [
+    {
+        text: "Hey love, just wanted to check in and see how you're feeling today! 💕",
+        timestamp: "Aug 06, 2025, 06:37 PM IST",
+        sender: "Sarthak"
+    }
+];
+
+// Function to display partner messages
+function displayPartnerMessages() {
+    const messageContainer = document.getElementById("messageContainer");
+    const noMessagesDiv = document.getElementById("noMessages");
+
+    // Clear current messages
+    messageContainer.innerHTML = "";
+
+    if (partnerMessages.length === 0) {
+        noMessagesDiv.style.display = "block";
+        messageContainer.appendChild(noMessagesDiv);
+    } else {
+        noMessagesDiv.style.display = "none";
+        partnerMessages.forEach(message => {
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message-item");
+            messageDiv.innerHTML = `
+                <p><strong>${message.sender}:</strong> ${message.text}</p>
+                <div class="message-timestamp">${message.timestamp}</div>
+            `;
+            messageContainer.appendChild(messageDiv);
+        });
+    }
+}
+
+// Function to send a new partner message
+function sendPartnerMessage() {
+    const input = document.getElementById("partnerMessageInput");
+    const messageText = input.value.trim();
+
+    if (messageText) {
+        const newMessage = {
+            text: messageText,
+            timestamp: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+            sender: "You"
+        };
+        partnerMessages.push(newMessage);
+        input.value = ""; // Clear input
+        displayPartnerMessages(); // Refresh message display
+    }
+}
+
+// Initialize messages on page load
+document.addEventListener("DOMContentLoaded", () => {
+    displayPartnerMessages();
+});
+
 // WOMAN DASHBOARD FUNCTIONALITY
 function initializeWomanDashboard() {
     updateCycleData();
