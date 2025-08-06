@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner Sync System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #edb0ed 0%, #ef9bb4 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sync-code-display {
+            background: linear-gradient(45deg, #667eea, #b593d6);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .code-number {
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .partner-entry {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .code-input {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .code-digit {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #b593d6);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f8f9ff;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .partner-dashboard {
+            display: none;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cycle-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-item {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; color: #764ba2;">🔗 Partner Sync System</h1>
+        
+        <!-- Woman's Side - Generate Code -->
+        <div id="womanSection">
+            <h2>👩 For Women - Share Your Sync Code</h2>
+            
+            <div class="sync-code-display">
+                <h3>Your Partner Sync Code</h3>
+                <div class="code-number" id="syncCode">000000</div>
+                <p>Share this code with your partner so they can sync with your cycle data</p>
+                <button class="btn" onclick="generateNewCode()">🔄 Generate New Code</button>
+                <button class="btn btn-secondary" onclick="copyCodeToClipboard()">📋 Copy Code</button>
+            </div>
+            
+            <div class="status-message status-success" id="partnerStatus" style="display: none;">
+                <strong>✅ Partner Connected!</strong><br>
+                Your partner <span id="partnerNameDisplay"></span> is now synced with your data.
+            </div>
+        </div>
+        
+        <!-- Partner's Side - Enter Code -->
+        <div id="partnerSection">
+            <h2>🤝 For Partners - Enter Sync Code</h2>
+            
+            <div class="partner-entry">
+                <h3>Enter the 6-digit code from your partner</h3>
+                <div class="code-input">
+                    <input type="text" class="code-digit" maxlength="1" id="digit1" oninput="moveToNext(this, 'digit2')" onkeydown="handleBackspace(this, null)">
+                    <input type="text" class="code-digit" maxlength="1" id="digit2" oninput="moveToNext(this, 'digit3')" onkeydown="handleBackspace(this, 'digit1')">
+                    <input type="text" class="code-digit" maxlength="1" id="digit3" oninput="moveToNext(this, 'digit4')" onkeydown="handleBackspace(this, 'digit2')">
+                    <input type="text" class="code-digit" maxlength="1" id="digit4" oninput="moveToNext(this, 'digit5')" onkeydown="handleBackspace(this, 'digit3')">
+                    <input type="text" class="code-digit" maxlength="1" id="digit5" oninput="moveToNext(this, 'digit6')" onkeydown="handleBackspace(this, 'digit4')">
+                    <input type="text" class="code-digit" maxlength="1" id="digit6" oninput="moveToNext(this, null)" onkeydown="handleBackspace(this, 'digit5')">
+                </div>
+                
+                <div>
+                    <input type="text" placeholder="Your name" id="partnerNameInput" style="padding: 10px; margin: 10px; border: 2px solid #667eea; border-radius: 8px; width: 200px;">
+                </div>
+                
+                <button class="btn" onclick="syncWithPartner()">🔗 Sync with Partner</button>
+                <button class="btn btn-secondary" onclick="clearCodeInputs()">Clear</button>
+            </div>
+            
+            <div class="status-message" id="syncStatus" style="display: none;"></div>
+        </div>
+        
+        <!-- Partner Dashboard (shown after successful sync) -->
+        <div id="partnerDashboard" class="partner-dashboard">
+            <h2>💝 Partner Dashboard</h2>
+            
+            <div class="dashboard-card">
+                <h3>Today's Cycle Update</h3>
+                <div class="cycle-info">
+                    <div class="info-item">
+                        <div class="info-label">Cycle Day</div>
+                        <div class="info-value" id="displayCycleDay">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Phase</div>
+                        <div class="info-value" id="displayPhase">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Next Period</div>
+                        <div class="info-value" id="displayNextPeriod">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Pregnancy Risk</div>
+                        <div class="info-value" id="displayPregnancyRisk">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>How You Can Support Today</h3>
+                <div id="supportSuggestions">
+                    <p>• Be gentle and understanding 💬</p>
+                    <p>• Offer comfort foods or warm drinks ☕</p>
+                    <p>• Give her space if needed 🤗</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>Recent Symptoms & Mood</h3>
+                <div id="recentSymptoms">
+                    <p>No recent symptoms logged</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>Send Support Message</h3>
+                <textarea id="supportMessage" placeholder="Send an encouraging message..." style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #667eea; margin-bottom: 10px;" rows="3"></textarea>
+                <button class="btn" onclick="sendSupportMessage()">💝 Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSyncCode = '';
+        let partnerData = null;
+        let isPartnerConnected = false;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSyncSystem();
+        });
+        
+        function initializeSyncSystem() {
+            // Check if we're in partner mode (from URL parameter)
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            
+            if (mode === 'partner') {
+                showPartnerSection();
+            } else {
+                showWomanSection();
+                generateNewCode();
+                checkPartnerConnection();
+            }
+        }
+        
+        function showWomanSection() {
+            document.getElementById('womanSection').style.display = 'block';
+            document.getElementById('partnerSection').style.display = 'none';
+            document.getElementById('partnerDashboard').style.display = 'none';
+        }
+        
+        function showPartnerSection() {
+            document.getElementById('womanSection').style.display = 'none';
+            document.getElementById('partnerSection').style.display = 'block';
+            document.getElementById('partnerDashboard').style.display = 'none';
+        }
+        
+        function generateNewCode() {
+            currentSyncCode = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('syncCode').textContent = currentSyncCode;
+            
+            // Save to localStorage for the woman
+            localStorage.setItem('paira_sync_code', currentSyncCode);
+            localStorage.setItem('paira_sync_timestamp', Date.now().toString());
+            
+            console.log('Generated sync code:', currentSyncCode);
+        }
+        
+        function copyCodeToClipboard() {
+            navigator.clipboard.writeText(currentSyncCode).then(function() {
+                showStatus('Code copied to clipboard!', 'success');
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                showStatus('Could not copy code', 'error');
+            });
+        }
+        
+        function checkPartnerConnection() {
+            const partnerInfo = localStorage.getItem('paira_partner_connection');
+            if (partnerInfo) {
+                const partner = JSON.parse(partnerInfo);
+                document.getElementById('partnerStatus').style.display = 'block';
+                document.getElementById('partnerNameDisplay').textContent = partner.name;
+                isPartnerConnected = true;
+            }
+        }
+        
+        // Partner code input handling
+        function moveToNext(current, nextId) {
+            if (current.value.length === current.maxLength && nextId) {
+                document.getElementById(nextId).focus();
+            }
+            
+            // Auto-sync when all 6 digits are entered
+            if (current.id === 'digit6' && current.value.length === 1) {
+                setTimeout(checkAutoSync, 100);
+            }
+        }
+        
+        function handleBackspace(current, prevId) {
+            if (event.key === 'Backspace' && current.value === '' && prevId) {
+                document.getElementById(prevId).focus();
+            }
+        }
+        
+        function checkAutoSync() {
+            const code = getEnteredCode();
+            if (code.length === 6) {
+                // Optional: Auto-sync when 6 digits are entered
+                // syncWithPartner();
+            }
+        }
+        
+        function getEnteredCode() {
+            let code = '';
+            for (let i = 1; i <= 6; i++) {
+                code += document.getElementById('digit' + i).value;
+            }
+            return code;
+        }
+        
+        function clearCodeInputs() {
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById('digit' + i).value = '';
+            }
+            document.getElementById('digit1').focus();
+        }
+        
+        function syncWithPartner() {
+            const enteredCode = getEnteredCode();
+            const partnerName = document.getElementById('partnerNameInput').value.trim();
+            
+            if (enteredCode.length !== 6) {
+                showStatus('Please enter all 6 digits of the sync code', 'error');
+                return;
+            }
+            
+            if (!partnerName) {
+                showStatus('Please enter your name', 'error');
+                return;
+            }
+            
+            // Simulate code validation (in real app, this would be server-side)
+            if (validateSyncCode(enteredCode)) {
+                // Successful sync
+                const partnerConnection = {
+                    name: partnerName,
+                    syncCode: enteredCode,
+                    connectedAt: new Date().toISOString()
+                };
+                
+                localStorage.setItem('paira_partner_connection', JSON.stringify(partnerConnection));
+                localStorage.setItem('paira_partner_data', JSON.stringify(generateSamplePartnerData()));
+                
+                showStatus('Successfully synced with your partner! 🎉', 'success');
+                
+                setTimeout(() => {
+                    showPartnerDashboard();
+                }, 2000);
+                
+            } else {
+                showStatus('Invalid sync code. Please check with your partner and try again.', 'error');
+            }
+        }
+        
+        function validateSyncCode(code) {
+            // In a real application, this would validate against a server
+            // For demo purposes, we'll accept any 6-digit code
+            return /^\d{6}$/.test(code);
+        }
+        
+        function generateSamplePartnerData() {
+            // This would come from the actual woman's data in a real app
+            return {
+                cycleDay: 12,
+                phase: 'Luteal Phase',
+                nextPeriodDays: 16,
+                pregnancyRisk: 'Low',
+                recentSymptoms: ['Mild cramps', 'Bloating'],
+                mood: 'Happy',
+                lastUpdated: new Date().toISOString()
+            };
+        }
+        
+        function showPartnerDashboard() {
+            document.getElementById('partnerSection').style.display = 'none';
+            document.getElementById('partnerDashboard').style.display = 'block';
+            
+            // Load and display partner data
+            const partnerDataStr = localStorage.getItem('paira_partner_data');
+            if (partnerDataStr) {
+                partnerData = JSON.parse(partnerDataStr);
+                updatePartnerDashboard();
+            }
+        }
+        
+        function updatePartnerDashboard() {
+            if (!partnerData) return;
+            
+            document.getElementById('displayCycleDay').textContent = partnerData.cycleDay;
+            document.getElementById('displayPhase').textContent = partnerData.phase;
+            document.getElementById('displayNextPeriod').textContent = `${partnerData.nextPeriodDays} days`;
+            document.getElementById('displayPregnancyRisk').textContent = partnerData.pregnancyRisk;
+            
+            // Update recent symptoms
+            const symptomsDiv = document.getElementById('recentSymptoms');
+            if (partnerData.recentSymptoms && partnerData.recentSymptoms.length > 0) {
+                symptomsDiv.innerHTML = partnerData.recentSymptoms.map(symptom => `<p>• ${symptom}</p>`).join('');
+            }
+            
+            // Update support suggestions based on phase
+            updateSupportSuggestions(partnerData.phase);
+        }
+        
+        function updateSupportSuggestions(phase) {
+            const suggestions = {
+                'Menstrual': [
+                    '• Offer heating pads or warm drinks ☕',
+                    '• Be extra patient and understanding 💕',
+                    '• Suggest gentle activities or rest 🛋️',
+                    '• Stock up on comfort foods 🍫'
+                ],
+                'Follicular': [
+                    '• Great time for planning activities together 📅',
+                    '• Support her energy levels with healthy meals 🥗',
+                    '• Encourage new projects or goals 🎯'
+                ],
+                'Ovulation': [
+                    '• She might have higher energy levels ⚡',
+                    '• Good time for important conversations 💬',
+                    '• Support her social activities 👥'
+                ],
+                'Luteal': [
+                    '• Be understanding of mood changes 🤗',
+                    '• Offer emotional support and patience 💝',
+                    '• Help with healthy snacks and hydration 💧',
+                    '• Suggest relaxing activities 🧘‍♀️'
+                ]
+            };
+            
+            const suggestionsDiv = document.getElementById('supportSuggestions');
+            const phaseSuggestions = suggestions[phase] || suggestions['Luteal'];
+            suggestionsDiv.innerHTML = phaseSuggestions.join('<br>');
+        }
+        
+        function sendSupportMessage() {
+            const message = document.getElementById('supportMessage').value.trim();
+            if (!message) {
+                showStatus('Please enter a message', 'error');
+                return;
+            }
+            
+            // In a real app, this would send to the woman's device
+            const supportMessages = JSON.parse(localStorage.getItem('paira_support_messages') || '[]');
+            supportMessages.push({
+                message: message,
+                sender: 'Partner',
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('paira_support_messages', JSON.stringify(supportMessages));
+            
+            document.getElementById('supportMessage').value = '';
+            showStatus('Message sent to your partner! 💝', 'success');
+        }
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('syncStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Add this to woman.js integration
+        window.PairaSyncSystem = {
+            generateNewCode,
+            copyCodeToClipboard,
+            syncWithPartner,
+            showPartnerDashboard,
+            sendSupportMessage
+        };
+    </script>
+</body>
+</html>
