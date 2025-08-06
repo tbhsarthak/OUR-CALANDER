@@ -137,7 +137,31 @@
                 <div class="analysis-data">
                     <p><strong>Average Period Length:</strong> <span id="avgPeriodLength">7 days</span></p>
                     <p><strong>Average Cycle Length:</strong> <span id="avgCycleLength">31 days</span></p>
-                    <p><strong>Sync Status:</strong> <span id="syncInfo">Synced with Alex at 06:21 PM IST, Aug 06, 2025</span></p>
+                    <p><strong>Sync Status:</strong> <span id="syncInfo">Synced with Alex at 06:37 PM IST, Aug 06, 2025</span></p>
+                </div>
+            </div>
+
+            <!-- Timeline Section -->
+            <div class="card timeline">
+                <h3>⏳ Cycle Timeline</h3>
+                <div class="timeline-log" id="timelineLog">
+                    <!-- Timeline will be populated dynamically via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Edit Options Section -->
+            <div class="card edit-options">
+                <h3>✏️ Edit Options</h3>
+                <div class="edit-form">
+                    <div class="input-group">
+                        <label>Edit Period Start Day:</label>
+                        <input type="number" id="editPeriodDay" min="1" max="31" placeholder="Enter day">
+                    </div>
+                    <div class="input-group">
+                        <label>Add Note:</label>
+                        <textarea id="editNote" rows="2" placeholder="Add a note..."></textarea>
+                    </div>
+                    <button class="btn" onclick="saveEditOptions()">Save Changes</button>
                 </div>
             </div>
         </div>

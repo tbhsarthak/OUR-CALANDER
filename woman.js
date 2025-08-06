@@ -10,43 +10,44 @@ let cycleData = {
     phase: 'Luteal Phase',
     currentMonth: 'August 2025',
     days: [
-        { date: 1, type: 'period' },
-        { date: 2, type: 'period' },
-        { date: 3, type: 'period' },
-        { date: 4, type: 'period' },
-        { date: 5, type: 'period' },
-        { date: 6, type: 'period' },
-        { date: 7, type: 'period' },
-        { date: 8, type: 'today' },
-        { date: 9, type: '' },
-        { date: 10, type: '' },
-        { date: 11, type: 'fertile' },
-        { date: 12, type: 'fertile' },
-        { date: 13, type: '' },
-        { date: 14, type: '' },
-        { date: 15, type: '' },
-        { date: 16, type: '' },
-        { date: 17, type: '' },
-        { date: 18, type: '' },
-        { date: 19, type: '' },
-        { date: 20, type: '' },
-        { date: 21, type: '' },
-        { date: 22, type: '' },
-        { date: 23, type: '' },
-        { date: 24, type: '' },
-        { date: 25, type: '' },
-        { date: 26, type: '' },
-        { date: 27, type: '' },
-        { date: 28, type: '' },
-        { date: 29, type: '' },
-        { date: 30, type: '' },
-        { date: 31, type: '' }
+        { date: 1, type: 'period', symptoms: { cramps: '++', bloating: '+' } },
+        { date: 2, type: 'period', symptoms: { cramps: '+++', headache: '+' } },
+        { date: 3, type: 'period', symptoms: { flow: '++' } },
+        { date: 4, type: 'period', symptoms: {} },
+        { date: 5, type: 'period', symptoms: { cramps: '+' } },
+        { date: 6, type: 'period', symptoms: {} },
+        { date: 7, type: 'period', symptoms: {} },
+        { date: 8, type: 'today', symptoms: {} },
+        { date: 9, type: '', symptoms: {} },
+        { date: 10, type: '', symptoms: {} },
+        { date: 11, type: 'fertile', symptoms: {} },
+        { date: 12, type: 'fertile', symptoms: { mood: '+' } },
+        { date: 13, type: '', symptoms: {} },
+        { date: 14, type: '', symptoms: {} },
+        { date: 15, type: '', symptoms: {} },
+        { date: 16, type: '', symptoms: {} },
+        { date: 17, type: '', symptoms: {} },
+        { date: 18, type: '', symptoms: {} },
+        { date: 19, type: '', symptoms: {} },
+        { date: 20, type: '', symptoms: {} },
+        { date: 21, type: '', symptoms: {} },
+        { date: 22, type: '', symptoms: {} },
+        { date: 23, type: '', symptoms: {} },
+        { date: 24, type: '', symptoms: {} },
+        { date: 25, type: '', symptoms: {} },
+        { date: 26, type: '', symptoms: {} },
+        { date: 27, type: '', symptoms: {} },
+        { date: 28, type: '', symptoms: {} },
+        { date: 29, type: '', symptoms: {} },
+        { date: 30, type: '', symptoms: {} },
+        { date: 31, type: '', symptoms: {} }
     ],
     history: {
         avgPeriodLength: 7,
         avgCycleLength: 31,
-        lastSync: '06:28 PM IST, Aug 06, 2025'
-    }
+        lastSync: '06:43 PM IST, Aug 06, 2025'
+    },
+    notes: {}
 };
 
 let selectedMood = '';
@@ -74,6 +75,7 @@ function initializeWomanDashboard() {
     loadDailyInsights();
     renderCalendar();
     updateAnalysisData();
+    renderTimeline();
 }
 
 function updateCycleDisplay() {
@@ -126,6 +128,7 @@ function handleDayClick(day) {
         renderCalendar(); // Re-render to reflect changes
         saveUserData();
         showNotification(`Day ${day} updated to ${newType || 'normal'}.`, 'success');
+        renderTimeline(); // Update timeline after edit
     }
 }
 
@@ -141,6 +144,56 @@ function updateAnalysisData() {
     if (avgPeriodLength) avgPeriodLength.textContent = `${cycleData.history.avgPeriodLength} days`;
     if (avgCycleLength) avgCycleLength.textContent = `${cycleData.history.avgCycleLength} days`;
     if (syncInfo) syncInfo.textContent = `Synced with Alex at ${cycleData.history.lastSync}`;
+}
+
+function renderTimeline() {
+    const timelineLog = document.getElementById('timelineLog');
+    if (!timelineLog) return;
+
+    timelineLog.innerHTML = '';
+    cycleData.days.forEach(day => {
+        if (day.type || Object.keys(day.symptoms).length > 0) {
+            const entry = document.createElement('div');
+            entry.className = 'timeline-entry';
+            let content = `<strong>Day ${day.date}</strong>: `;
+            if (day.type === 'period') content += 'Period started';
+            const symptoms = Object.entries(day.symptoms).map(([symptom, intensity]) => `${symptom.charAt(0).toUpperCase() + symptom.slice(1)}: ${intensity}`).join(', ');
+            if (symptoms) content += ` - Symptoms: ${symptoms}`;
+            entry.innerHTML = content;
+            timelineLog.appendChild(entry);
+        }
+    });
+}
+
+function saveEditOptions() {
+    const editPeriodDay = document.getElementById('editPeriodDay').value;
+    const editNote = document.getElementById('editNote').value;
+
+    if (editPeriodDay) {
+        const day = parseInt(editPeriodDay);
+        if (day >= 1 && day <= 31) {
+            const selectedDay = cycleData.days.find(d => d.date === day);
+            if (selectedDay) {
+                selectedDay.type = 'period';
+                renderCalendar();
+                renderTimeline();
+                showNotification(`Period start updated for Day ${day}.`, 'success');
+            } else {
+                showNotification('Invalid day selected.', 'warning');
+            }
+        } else {
+            showNotification('Please enter a day between 1 and 31.', 'warning');
+        }
+    }
+
+    if (editNote) {
+        cycleData.notes[cycleData.currentDay] = editNote;
+        showNotification(`Note added for Day ${cycleData.currentDay}.`, 'success');
+    }
+
+    document.getElementById('editPeriodDay').value = '';
+    document.getElementById('editNote').value = '';
+    saveUserData();
 }
 
 function toggleLog(element) {
@@ -160,13 +213,25 @@ function saveQuickLog() {
         return;
     }
 
-    const loggedItems = Array.from(quickLogs).join(', ');
-    showNotification(`Logged: ${loggedItems}`, 'success');
+    const loggedItems = {};
+    quickLogs.forEach(type => {
+        const intensity = prompt(`Enter intensity for ${type} (e.g., +, ++, +++):`);
+        if (intensity && ['+', '++', '+++'].includes(intensity)) {
+            loggedItems[type] = intensity;
+        }
+    });
+
+    if (Object.keys(loggedItems).length > 0) {
+        cycleData.days.find(d => d.date === cycleData.currentDay).symptoms = loggedItems;
+        showNotification(`Logged: ${Object.entries(loggedItems).map(([k, v]) => `${k}: ${v}`).join(', ')}`, 'success');
+        renderTimeline();
+    }
 
     quickLogs.clear();
     document.querySelectorAll('.log-btn').forEach(btn => btn.classList.remove('active'));
     notifyPartner('quick-log', Array.from(quickLogs));
     updateSyncStatus('Quick log synced with partner');
+    saveUserData();
 }
 
 function selectMood(element) {

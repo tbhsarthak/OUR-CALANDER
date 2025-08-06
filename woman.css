@@ -411,6 +411,43 @@ body {
     color: #2e7d32;
 }
 
+/* Timeline Styles */
+.timeline {
+    background: linear-gradient(45deg, #e1bee7, #ce93d8);
+}
+
+.timeline-log {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.timeline-entry {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.timeline-entry:last-child {
+    border-bottom: none;
+}
+
+.timeline-entry strong {
+    color: #6a1b9a;
+}
+
+.timeline-intensity {
+    font-weight: bold;
+    color: #d81b60;
+}
+
+/* Edit Options Styles */
+.edit-options {
+    background: linear-gradient(45deg, #ffe0b2, #ffcc80);
+}
+
+.edit-form .input-group {
+    margin-bottom: 15px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .dashboard-grid {
