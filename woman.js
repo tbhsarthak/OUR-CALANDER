@@ -5,8 +5,8 @@
 // Sample data - in real app this would come from database
 let cycleData = {
     currentDay: 12,
-    cycleLength: 28,
-    periodLength: 5,
+    cycleLength: 31,
+    periodLength: 7,
     phase: 'Luteal Phase',
     currentMonth: 'August 2025',
     days: [
@@ -15,9 +15,9 @@ let cycleData = {
         { date: 3, type: 'period' },
         { date: 4, type: 'period' },
         { date: 5, type: 'period' },
-        { date: 6, type: 'today' },
-        { date: 7, type: '' },
-        { date: 8, type: '' },
+        { date: 6, type: 'period' },
+        { date: 7, type: 'period' },
+        { date: 8, type: 'today' },
         { date: 9, type: '' },
         { date: 10, type: '' },
         { date: 11, type: 'fertile' },
@@ -41,7 +41,12 @@ let cycleData = {
         { date: 29, type: '' },
         { date: 30, type: '' },
         { date: 31, type: '' }
-    ]
+    ],
+    history: {
+        avgPeriodLength: 7,
+        avgCycleLength: 31,
+        lastSync: '06:28 PM IST, Aug 06, 2025'
+    }
 };
 
 let selectedMood = '';
@@ -68,6 +73,7 @@ function initializeWomanDashboard() {
     updateProgressRing();
     loadDailyInsights();
     renderCalendar();
+    updateAnalysisData();
 }
 
 function updateCycleDisplay() {
@@ -125,6 +131,16 @@ function handleDayClick(day) {
 
 function handleEditClick() {
     showNotification('Click a day on the calendar to edit its status (period, fertile, or normal).', 'info');
+}
+
+function updateAnalysisData() {
+    const avgPeriodLength = document.getElementById('avgPeriodLength');
+    const avgCycleLength = document.getElementById('avgCycleLength');
+    const syncInfo = document.getElementById('syncInfo');
+
+    if (avgPeriodLength) avgPeriodLength.textContent = `${cycleData.history.avgPeriodLength} days`;
+    if (avgCycleLength) avgCycleLength.textContent = `${cycleData.history.avgCycleLength} days`;
+    if (syncInfo) syncInfo.textContent = `Synced with Alex at ${cycleData.history.lastSync}`;
 }
 
 function toggleLog(element) {
@@ -308,7 +324,7 @@ function updateMoodTip() {
     };
 
     let phase = 'luteal';
-    if (cycleData.currentDay <= 5) phase = 'menstrual';
+    if (cycleData.currentDay <= 7) phase = 'menstrual';
     else if (cycleData.currentDay <= 13) phase = 'follicular';
     else if (cycleData.currentDay <= 15) phase = 'ovulation';
 

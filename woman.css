@@ -397,6 +397,20 @@ body {
     font-weight: bold;
 }
 
+/* Analysis Styles */
+.analysis {
+    background: linear-gradient(45deg, #c8e6c9, #a5d6a7);
+}
+
+.analysis-data p {
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+.analysis-data strong {
+    color: #2e7d32;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .dashboard-grid {
