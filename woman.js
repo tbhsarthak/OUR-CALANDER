@@ -1,47 +1,24 @@
-// ========================================
-// WOMAN DASHBOARD FUNCTIONALITY
-// ========================================
+let userProfile = {
+    name: '',
+    partnerName: '',
+    isPaired: false,
+    cycleLength: 28,
+    periodLength: 5,
+    lastPeriodDate: null,
+    lastPeriodEndDate: null
+};
 
-// Sample data - in real app this would come from database
 let cycleData = {
     currentDay: 12,
     cycleLength: 31,
     periodLength: 7,
     phase: 'Luteal Phase',
     currentMonth: 'August 2025',
-    days: [
-        { date: 1, type: 'period', symptoms: { cramps: '++', bloating: '+' } },
-        { date: 2, type: 'period', symptoms: { cramps: '+++', headache: '+' } },
-        { date: 3, type: 'period', symptoms: { flow: '++' } },
-        { date: 4, type: 'period', symptoms: {} },
-        { date: 5, type: 'period', symptoms: { cramps: '+' } },
-        { date: 6, type: 'period', symptoms: {} },
-        { date: 7, type: 'period', symptoms: {} },
-        { date: 8, type: 'today', symptoms: {} },
-        { date: 9, type: '', symptoms: {} },
-        { date: 10, type: '', symptoms: {} },
-        { date: 11, type: 'fertile', symptoms: {} },
-        { date: 12, type: 'fertile', symptoms: { mood: '+' } },
-        { date: 13, type: '', symptoms: {} },
-        { date: 14, type: '', symptoms: {} },
-        { date: 15, type: '', symptoms: {} },
-        { date: 16, type: '', symptoms: {} },
-        { date: 17, type: '', symptoms: {} },
-        { date: 18, type: '', symptoms: {} },
-        { date: 19, type: '', symptoms: {} },
-        { date: 20, type: '', symptoms: {} },
-        { date: 21, type: '', symptoms: {} },
-        { date: 22, type: '', symptoms: {} },
-        { date: 23, type: '', symptoms: {} },
-        { date: 24, type: '', symptoms: {} },
-        { date: 25, type: '', symptoms: {} },
-        { date: 26, type: '', symptoms: {} },
-        { date: 27, type: '', symptoms: {} },
-        { date: 28, type: '', symptoms: {} },
-        { date: 29, type: '', symptoms: {} },
-        { date: 30, type: '', symptoms: {} },
-        { date: 31, type: '', symptoms: {} }
-    ],
+    days: Array.from({ length: 31 }, (_, i) => ({
+        date: i + 1,
+        type: '',
+        symptoms: {}
+    })),
     history: {
         avgPeriodLength: 7,
         avgCycleLength: 31,
@@ -54,28 +31,380 @@ let selectedMood = '';
 let quickLogs = new Set();
 
 document.addEventListener('DOMContentLoaded', function () {
+    loadUserProfile();
+    
     if (document.getElementById('cycleDay')) {
         initializeWomanDashboard();
     }
 
-    if (document.querySelector('.mood-tip')) {
-        initializePartnerDashboard();
+    const header = document.querySelector('.header');
+    if (header) {
+        const settingsBtn = document.createElement('button');
+        settingsBtn.className = 'btn btn-secondary';
+        settingsBtn.textContent = '⚙️ Settings';
+        settingsBtn.style.marginTop = '10px';
+        settingsBtn.onclick = showUserSettings;
+        header.appendChild(settingsBtn);
     }
 
-    // Add edit button event listener
     const editBtn = document.querySelector('.edit-btn');
     if (editBtn) {
         editBtn.addEventListener('click', handleEditClick);
     }
+    
+    if (!userProfile.name) {
+        setTimeout(showUserSetup, 500);
+    }
 });
 
+// USER SETUP AND PROFILE MANAGEMENT
+function showUserSetup() {
+    const modal = createModal('Welcome to Paira! 🌸', `
+        <div style="text-align: left;">
+            <p style="margin-bottom: 20px; color: #666;">Let's personalize your experience:</p>
+            
+            <div class="input-group">
+                <label>Your Name:</label>
+                <input type="text" id="userName" placeholder="Enter your name" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Partner's Name (optional):</label>
+                <input type="text" id="partnerName" placeholder="Enter partner's name">
+            </div>
+            
+            <div class="input-group">
+                <label>Average Cycle Length:</label>
+                <select id="cycleLength">
+                    <option value="21">21 days</option>
+                    <option value="24">24 days</option>
+                    <option value="26">26 days</option>
+                    <option value="28" selected>28 days</option>
+                    <option value="30">30 days</option>
+                    <option value="32">32 days</option>
+                    <option value="35">35 days</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>Period Duration:</label>
+                <select id="periodLength">
+                    <option value="3">3 days</option>
+                    <option value="4">4 days</option>
+                    <option value="5" selected>5 days</option>
+                    <option value="6">6 days</option>
+                    <option value="7">7 days</option>
+                    <option value="8">8 days</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>Last Period Started:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="date" id="lastPeriodDate">
+                    <button class="btn btn-secondary" onclick="clearLastPeriodDate('userSetup')" style="padding: 8px 15px;">Clear Date</button>
+                </div>
+            </div>
+        </div>
+    `, 'saveUserSetup()');
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('lastPeriodDate').value = today;
+}
+
+function createModal(title, content, onSave) {
+    const modalOverlay = document.createElement('div');
+    modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    `;
+    
+    modalContent.innerHTML = `
+        <h3 style="margin-bottom: 20px; color: #764ba2;">${title}</h3>
+        ${content}
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <button class="btn btn-secondary" onclick="closeModal()" style="width: auto; padding: 10px 20px;">Cancel</button>
+            <button class="btn" onclick="${onSave}" style="width: auto; padding: 10px 20px;">Save</button>
+        </div>
+    `;
+    
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay);
+    window.currentModal = modalOverlay;
+}
+
+function closeModal() {
+    if (window.currentModal) {
+        window.currentModal.remove();
+        window.currentModal = null;
+    }
+}
+
+function clearLastPeriodDate(context) {
+    const dateInputId = context === 'userSetup' ? 'lastPeriodDate' : 'settingsLastPeriodDate';
+    document.getElementById(dateInputId).value = '';
+    if (context === 'settings') {
+        userProfile.lastPeriodDate = null;
+        userProfile.lastPeriodEndDate = null;
+        cycleData.currentDay = 1;
+        cycleData.phase = 'Unknown';
+        updateCycleData();
+        saveUserData();
+        updatePersonalizedUI();
+        showNotification('Last period date cleared.', 'success');
+    }
+}
+
+function saveUserSetup() {
+    const name = document.getElementById('userName').value.trim();
+    const partnerName = document.getElementById('partnerName').value.trim();
+    const cycleLength = parseInt(document.getElementById('cycleLength').value);
+    const periodLength = parseInt(document.getElementById('periodLength').value);
+    const lastPeriodDate = document.getElementById('lastPeriodDate').value;
+    
+    if (!name) {
+        showNotification('Please enter your name', 'warning');
+        return;
+    }
+    
+    userProfile = {
+        name: name,
+        partnerName: partnerName,
+        isPaired: !!partnerName,
+        cycleLength: cycleLength,
+        periodLength: periodLength,
+        lastPeriodDate: lastPeriodDate || null,
+        lastPeriodEndDate: null
+    };
+    
+    if (lastPeriodDate) {
+        const lastPeriod = new Date(lastPeriodDate);
+        const today = new Date();
+        const daysDiff = Math.floor((today - lastPeriod) / (1000 * 60 * 60 * 24));
+        cycleData.currentDay = Math.max(1, daysDiff + 1);
+        cycleData.phase = calculatePhase(cycleData.currentDay, cycleLength);
+    } else {
+        cycleData.currentDay = 1;
+        cycleData.phase = 'Unknown';
+    }
+    
+    cycleData.cycleLength = cycleLength;
+    cycleData.periodLength = periodLength;
+    updateCycleData();
+    
+    saveToStorage('user_profile', userProfile);
+    saveToStorage('cycle_data', cycleData);
+    
+    closeModal();
+    updatePersonalizedUI();
+    showNotification(`Welcome ${name}! Your profile has been saved.`, 'success');
+}
+
+function loadUserProfile() {
+    const saved = loadFromStorage('user_profile');
+    if (saved) {
+        userProfile = { ...userProfile, ...saved };
+    }
+    
+    const savedCycle = loadFromStorage('cycle_data');
+    if (savedCycle) {
+        cycleData = { ...cycleData, ...savedCycle };
+    }
+    
+    updateCycleData();
+    
+    if (userProfile.name) {
+        updatePersonalizedUI();
+    }
+}
+
+function updatePersonalizedUI() {
+    const welcomeMessage = document.querySelector('.header h1');
+    if (welcomeMessage) {
+        welcomeMessage.textContent = `👋 Welcome back, ${userProfile.name || 'User'}!`;
+    }
+    
+    const syncStatus = document.getElementById('syncStatus');
+    if (syncStatus) {
+        if (userProfile.isPaired) {
+            syncStatus.textContent = `🔗 Synced with ${userProfile.partnerName}`;
+            syncStatus.style.background = '#4CAF50';
+        } else {
+            syncStatus.textContent = '👤 Solo mode';
+            syncStatus.style.background = '#FF9800';
+        }
+    }
+    
+    updatePartnerReferences();
+    updateAnalysisData();
+    
+    if (document.getElementById('cycleDay')) {
+        updateCycleDisplay();
+        updateProgressRing();
+        generatePersonalizedInsights();
+    }
+}
+
+function updatePartnerReferences() {
+    const partnerMessages = document.getElementById('partnerMessages');
+    if (partnerMessages && !userProfile.isPaired) {
+        partnerMessages.innerHTML = `
+            <h3>💝 From Your Partner</h3>
+            <div class="no-messages" style="text-align: center; color: #666; padding: 20px;">
+                <p>👤 Solo Mode</p>
+                <p style="font-size: 14px;">Add a partner in settings to enable sync features!</p>
+                <button class="btn btn-secondary" onclick="showPartnerSetup()" style="margin-top: 10px; width: auto; padding: 8px 20px;">Add Partner</button>
+            </div>
+        `;
+    }
+    
+    const messageButton = document.querySelector('button[onclick="sendMessageToPartner()"]');
+    if (messageButton) {
+        if (userProfile.isPaired) {
+            messageButton.textContent = `Send Message to ${userProfile.partnerName}`;
+            messageButton.style.display = 'block';
+        } else {
+            messageButton.style.display = 'none';
+        }
+    }
+}
+
+function showPartnerSetup() {
+    const modal = createModal('Add Your Partner 💕', `
+        <div style="text-align: left;">
+            <p style="margin-bottom: 20px; color: #666;">Connect with your partner to share cycle updates and receive support!</p>
+            
+            <div class="input-group">
+                <label>Partner's Name:</label>
+                <input type="text" id="newPartnerName" placeholder="Enter partner's name" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Partner's Email (optional):</label>
+                <input type="email" id="partnerEmail" placeholder="For sending invite link">
+            </div>
+        </div>
+    `, 'savePartnerInfo()');
+}
+
+function savePartnerInfo() {
+    const partnerName = document.getElementById('newPartnerName').value.trim();
+    const partnerEmail = document.getElementById('partnerEmail').value.trim();
+    
+    if (!partnerName) {
+        showNotification('Please enter your partner\'s name', 'warning');
+        return;
+    }
+    
+    userProfile.partnerName = partnerName;
+    userProfile.isPaired = true;
+    
+    saveToStorage('user_profile', userProfile);
+    
+    closeModal();
+    updatePersonalizedUI();
+    
+    let message = `${partnerName} has been added as your partner!`;
+    if (partnerEmail) {
+        message += ` We'll send them an invite to ${partnerEmail}.`;
+    }
+    
+    showNotification(message, 'success');
+}
+
+function generatePersonalizedInsights() {
+    const userName = userProfile.name || 'User';
+    const partnerName = userProfile.partnerName || 'your partner';
+    
+    const insightItems = document.querySelectorAll('.insight-item');
+    
+    const personalizedInsights = [
+        `${userName}, you're on day ${cycleData.currentDay} of your cycle. Great job tracking!`,
+        `Reminder: Your period is expected in ${cycleData.cycleLength - cycleData.currentDay} days.`,
+        `Based on your ${cycleData.phase.toLowerCase()}, try gentle exercises and stay hydrated.`,
+        `${partnerName} can see your updates and send supportive messages!`,
+        `Tip: Consistent tracking helps predict your cycle more accurately.`
+    ];
+    
+    insightItems.forEach((item, index) => {
+        if (index < personalizedInsights.length) {
+            item.innerHTML = `<strong>${['Personal', 'Reminder', 'Wellness'][index]}:</strong> ${personalizedInsights[index]}`;
+        }
+    });
+}
+
+// WOMAN DASHBOARD FUNCTIONALITY
 function initializeWomanDashboard() {
+    updateCycleData();
     updateCycleDisplay();
     updateProgressRing();
     loadDailyInsights();
     renderCalendar();
     updateAnalysisData();
     renderTimeline();
+    generatePersonalizedInsights();
+}
+
+function updateCycleData() {
+    cycleData.days.forEach(day => {
+        day.type = '';
+        day.symptoms = {};
+    });
+
+    if (userProfile.lastPeriodDate) {
+        const lastPeriod = new Date(userProfile.lastPeriodDate);
+        const today = new Date();
+        const daysDiff = Math.floor((today - lastPeriod) / (1000 * 60 * 60 * 24));
+        cycleData.currentDay = Math.max(1, daysDiff + 1);
+        cycleData.phase = calculatePhase(cycleData.currentDay, userProfile.cycleLength);
+
+        const periodStartDay = (daysDiff % userProfile.cycleLength) + 1;
+        for (let i = 0; i < userProfile.periodLength; i++) {
+            const dayIndex = (periodStartDay + i - 1) % 31;
+            if (dayIndex >= 0 && dayIndex < cycleData.days.length) {
+                cycleData.days[dayIndex].type = 'period';
+            }
+        }
+
+        const expectedPeriodStart = new Date(lastPeriod);
+        expectedPeriodStart.setDate(lastPeriod.getDate() + userProfile.cycleLength);
+        const expectedStartDay = expectedPeriodStart.getDate();
+        for (let i = 0; i < userProfile.periodLength; i++) {
+            const dayIndex = expectedStartDay + i - 1;
+            if (dayIndex >= 1 && dayIndex <= 31) {
+                cycleData.days[dayIndex - 1].type = 'expected-period';
+            }
+        }
+
+        const fertileStart = Math.floor(userProfile.cycleLength / 2) - 5;
+        const fertileEnd = Math.floor(userProfile.cycleLength / 2) + 2;
+        for (let i = fertileStart; i <= fertileEnd; i++) {
+            if (i >= 1 && i <= 31) {
+                cycleData.days[i - 1].type = cycleData.days[i - 1].type || 'fertile';
+            }
+        }
+
+        cycleData.days[cycleData.currentDay - 1].type = 'today';
+    }
 }
 
 function updateCycleDisplay() {
@@ -113,6 +442,7 @@ function renderCalendar() {
         if (day.type === 'period') dayElement.classList.add('period');
         if (day.type === 'fertile') dayElement.classList.add('fertile');
         if (day.type === 'today') dayElement.classList.add('today');
+        if (day.type === 'expected-period') dayElement.classList.add('expected-period');
         dayElement.addEventListener('click', () => handleDayClick(day.date));
         calendarGrid.appendChild(dayElement);
     });
@@ -123,12 +453,12 @@ function handleDayClick(day) {
     if (!selectedDay) return;
 
     const newType = prompt('Set status for day ' + day + ' (period/fertile/leave blank):');
-    if (newType) {
+    if (newType !== null) {
         selectedDay.type = newType.toLowerCase() === 'period' || newType.toLowerCase() === 'fertile' ? newType.toLowerCase() : '';
-        renderCalendar(); // Re-render to reflect changes
+        renderCalendar();
         saveUserData();
         showNotification(`Day ${day} updated to ${newType || 'normal'}.`, 'success');
-        renderTimeline(); // Update timeline after edit
+        renderTimeline();
     }
 }
 
@@ -143,7 +473,14 @@ function updateAnalysisData() {
 
     if (avgPeriodLength) avgPeriodLength.textContent = `${cycleData.history.avgPeriodLength} days`;
     if (avgCycleLength) avgCycleLength.textContent = `${cycleData.history.avgCycleLength} days`;
-    if (syncInfo) syncInfo.textContent = `Synced with Alex at ${cycleData.history.lastSync}`;
+    
+    if (syncInfo) {
+        const partnerName = userProfile.partnerName || 'Partner';
+        const syncMessage = userProfile.isPaired ? 
+            `Synced with ${partnerName} at ${cycleData.history.lastSync}` : 
+            'Not synced - Add a partner to enable sync';
+        syncInfo.textContent = syncMessage;
+    }
 }
 
 function renderTimeline() {
@@ -152,11 +489,12 @@ function renderTimeline() {
 
     timelineLog.innerHTML = '';
     cycleData.days.forEach(day => {
-        if (day.type || Object.keys(day.symptoms).length > 0) {
+        if (day.type === 'period' || day.type === 'expected-period' || Object.keys(day.symptoms).length > 0) {
             const entry = document.createElement('div');
             entry.className = 'timeline-entry';
             let content = `<strong>Day ${day.date}</strong>: `;
-            if (day.type === 'period') content += 'Period started';
+            if (day.type === 'period') content += 'Period';
+            if (day.type === 'expected-period') content += 'Expected Period';
             const symptoms = Object.entries(day.symptoms).map(([symptom, intensity]) => `${symptom.charAt(0).toUpperCase() + symptom.slice(1)}: ${intensity}`).join(', ');
             if (symptoms) content += ` - Symptoms: ${symptoms}`;
             entry.innerHTML = content;
@@ -166,23 +504,38 @@ function renderTimeline() {
 }
 
 function saveEditOptions() {
-    const editPeriodDay = document.getElementById('editPeriodDay').value;
+    const editPeriodStartDate = document.getElementById('editPeriodStartDate').value;
+    const editPeriodEndDate = document.getElementById('editPeriodEndDate').value;
     const editNote = document.getElementById('editNote').value;
 
-    if (editPeriodDay) {
-        const day = parseInt(editPeriodDay);
-        if (day >= 1 && day <= 31) {
-            const selectedDay = cycleData.days.find(d => d.date === day);
-            if (selectedDay) {
-                selectedDay.type = 'period';
-                renderCalendar();
-                renderTimeline();
-                showNotification(`Period start updated for Day ${day}.`, 'success');
-            } else {
-                showNotification('Invalid day selected.', 'warning');
-            }
+    if (editPeriodStartDate) {
+        userProfile.lastPeriodDate = editPeriodStartDate;
+        const lastPeriod = new Date(editPeriodStartDate);
+        const today = new Date();
+        const daysDiff = Math.floor((today - lastPeriod) / (1000 * 60 * 60 * 24));
+        cycleData.currentDay = Math.max(1, daysDiff + 1);
+        cycleData.phase = calculatePhase(cycleData.currentDay, userProfile.cycleLength);
+        updateCycleData();
+        renderCalendar();
+        renderTimeline();
+        showNotification(`Period start updated to ${editPeriodStartDate}.`, 'success');
+    }
+
+    if (editPeriodEndDate) {
+        userProfile.lastPeriodEndDate = editPeriodEndDate;
+        const startDate = new Date(userProfile.lastPeriodDate);
+        const endDate = new Date(editPeriodEndDate);
+        const periodLength = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        if (periodLength > 0 && periodLength <= 10) {
+            userProfile.periodLength = periodLength;
+            cycleData.periodLength = periodLength;
+            cycleData.history.avgPeriodLength = periodLength;
+            updateCycleData();
+            renderCalendar();
+            renderTimeline();
+            showNotification(`Period end updated to ${editPeriodEndDate}. Period length set to ${periodLength} days.`, 'success');
         } else {
-            showNotification('Please enter a day between 1 and 31.', 'warning');
+            showNotification('Invalid period end date. Ensure it is after the start date and within 10 days.', 'warning');
         }
     }
 
@@ -191,7 +544,8 @@ function saveEditOptions() {
         showNotification(`Note added for Day ${cycleData.currentDay}.`, 'success');
     }
 
-    document.getElementById('editPeriodDay').value = '';
+    document.getElementById('editPeriodStartDate').value = '';
+    document.getElementById('editPeriodEndDate').value = '';
     document.getElementById('editNote').value = '';
     saveUserData();
 }
@@ -270,10 +624,7 @@ function getMoodText(mood) {
     return moodMap[mood] || mood;
 }
 
-// =======================
-// OFFLINE AI CHAT (DEMO)
-// =======================
-
+// AI CHAT FUNCTIONALITY
 function sendAIMessage() {
     const input = document.getElementById('aiInput');
     const message = input.value.trim();
@@ -284,7 +635,6 @@ function sendAIMessage() {
 
     input.value = '';
 
-    // Simulate AI response
     setTimeout(() => {
         const aiResponse = generateAIResponse(message);
         addChatMessage(chatContainer, aiResponse, 'ai');
@@ -306,14 +656,16 @@ function addChatMessage(container, message, type) {
 }
 
 function generateAIResponse(message) {
+    const userName = userProfile.name || 'there';
+    
     const responses = {
-        'period': 'During your period, it\'s normal to experience discomfort. Try rest, hydration, and heating pads. 💙',
-        'cramps': 'Menstrual cramps can be eased with warm compresses, light movement, or pain relievers. Stay cozy! 🌸',
-        'mood': 'Mood swings are common due to hormones. Journaling or gentle exercise may help! 💆‍♀️',
-        'bloating': 'Reduce bloating by drinking water, limiting salt, and eating small meals. 🥒',
-        'pregnancy': 'Tracking ovulation can help if you’re trying to conceive. Ovulation usually happens mid-cycle. 💡',
-        'exercise': 'Light exercise like yoga or walking can ease symptoms during your cycle. 🚶‍♀️',
-        'default': 'I\'m here to help with any menstrual health questions. Try asking about cramps, mood, or cycle tracking! 🤗'
+        'period': `Hi ${userName}! During your period, it's normal to experience discomfort. Try rest, hydration, and heating pads. 💙`,
+        'cramps': `${userName}, menstrual cramps can be eased with warm compresses, light movement, or pain relievers. Stay cozy! 🌸`,
+        'mood': `Hey ${userName}! Mood swings are common due to hormones. Journaling or gentle exercise may help! 💆‍♀️`,
+        'bloating': `${userName}, reduce bloating by drinking water, limiting salt, and eating small meals. 🥒`,
+        'pregnancy': `${userName}, tracking ovulation can help if you're trying to conceive. Ovulation usually happens mid-cycle. 💡`,
+        'exercise': `Light exercise like yoga or walking can ease symptoms during your cycle, ${userName}! 🚶‍♀️`,
+        'default': `Hi ${userName}! I'm here to help with any menstrual health questions. Try asking about cramps, mood, or cycle tracking! 🤗`
     };
 
     for (let keyword in responses) {
@@ -325,14 +677,12 @@ function generateAIResponse(message) {
     return responses['default'];
 }
 
-// =====================
-// OTHER FUNCTIONS BELOW
-// =====================
-
+// MESSAGING AND SYNC
 function sendMessageToPartner() {
-    const message = prompt('Send a message to your partner:');
+    const partnerName = userProfile.partnerName || 'your partner';
+    const message = prompt(`Send a message to ${partnerName}:`);
     if (message && message.trim()) {
-        showNotification('Message sent to your partner!', 'success');
+        showNotification(`Message sent to ${partnerName}!`, 'success');
         notifyPartner('message', { text: message, timestamp: new Date() });
     }
 }
@@ -350,76 +700,208 @@ function updateSyncStatus(message) {
         syncStatus.textContent = `🔄 ${message}`;
         syncStatus.style.background = '#FF9800';
         setTimeout(() => {
-            syncStatus.textContent = '🔗 Synced with Alex';
-            syncStatus.style.background = '#4CAF50';
+            const partnerName = userProfile.partnerName || 'Partner';
+            syncStatus.textContent = userProfile.isPaired ? 
+                `🔗 Synced with ${partnerName}` : 
+                '👤 Solo mode';
+            syncStatus.style.background = userProfile.isPaired ? '#4CAF50' : '#FF9800';
         }, 2000);
     }
 }
 
 function loadDailyInsights() {
-    const insights = [
-        "Pattern Detected: You tend to have higher energy levels during days 8-12 of your cycle. Perfect time for workouts!",
-        "Reminder: Your period is expected in 4 days. Consider stocking up on essentials.",
-        "Wellness Tip: Based on your luteal phase, try magnesium-rich foods to reduce bloating."
-    ];
-    const insightsContainer = document.querySelector('.insights');
-    if (insightsContainer) {
-        console.log('Daily insights loaded');
+    console.log('Daily insights loaded for', userProfile.name || 'User');
+}
+
+// SETTINGS AND PROFILE MANAGEMENT
+function showUserSettings() {
+    const modal = createModal(`${userProfile.name}'s Settings ⚙️`, `
+        <div style="text-align: left;">
+            <div class="input-group">
+                <label>Your Name:</label>
+                <input type="text" id="settingsUserName" value="${userProfile.name}" placeholder="Your name">
+            </div>
+            
+            <div class="input-group">
+                <label>Partner's Name:</label>
+                <input type="text" id="settingsPartnerName" value="${userProfile.partnerName || ''}" placeholder="Partner's name">
+            </div>
+            
+            <div class="input-group">
+                <label>Cycle Length:</label>
+                <select id="settingsCycleLength">
+                    <option value="21" ${userProfile.cycleLength === 21 ? 'selected' : ''}>21 days</option>
+                    <option value="24" ${userProfile.cycleLength === 24 ? 'selected' : ''}>24 days</option>
+                    <option value="26" ${userProfile.cycleLength === 26 ? 'selected' : ''}>26 days</option>
+                    <option value="28" ${userProfile.cycleLength === 28 ? 'selected' : ''}>28 days</option>
+                    <option value="30" ${userProfile.cycleLength === 30 ? 'selected' : ''}>30 days</option>
+                    <option value="32" ${userProfile.cycleLength === 32 ? 'selected' : ''}>32 days</option>
+                    <option value="35" ${userProfile.cycleLength === 35 ? 'selected' : ''}>35 days</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>Period Duration:</label>
+                <select id="settingsPeriodLength">
+                    <option value="3" ${userProfile.periodLength === 3 ? 'selected' : ''}>3 days</option>
+                    <option value="4" ${userProfile.periodLength === 4 ? 'selected' : ''}>4 days</option>
+                    <option value="5" ${userProfile.periodLength === 5 ? 'selected' : ''}>5 days</option>
+                    <option value="6" ${userProfile.periodLength === 6 ? 'selected' : ''}>6 days</option>
+                    <option value="7" ${userProfile.periodLength === 7 ? 'selected' : ''}>7 days</option>
+                    <option value="8" ${userProfile.periodLength === 8 ? 'selected' : ''}>8 days</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>Last Period Started:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="date" id="settingsLastPeriodDate" value="${userProfile.lastPeriodDate || ''}">
+                    <button class="btn btn-secondary" onclick="clearLastPeriodDate('settings')" style="padding: 8px 15px;">Clear Date</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <button class="btn btn-secondary" onclick="logoutUser()" style="width: 100%; background: #ff4444; color: white; margin-bottom: 10px;">Logout</button>
+                <button class="btn btn-secondary" onclick="clearAllData()" style="width: 100%; background: #ff4444; color: white;">Clear All Data</button>
+            </div>
+        </div>
+    `, 'saveUserSettings()');
+}
+
+function saveUserSettings() {
+    const name = document.getElementById('settingsUserName').value.trim();
+    const partnerName = document.getElementById('settingsPartnerName').value.trim();
+    const cycleLength = parseInt(document.getElementById('settingsCycleLength').value);
+    const periodLength = parseInt(document.getElementById('settingsPeriodLength').value);
+    const lastPeriodDate = document.getElementById('settingsLastPeriodDate').value;
+    
+    if (!name) {
+        showNotification('Please enter your name', 'warning');
+        return;
+    }
+    
+    userProfile.name = name;
+    userProfile.partnerName = partnerName;
+    userProfile.isPaired = !!partnerName;
+    userProfile.cycleLength = cycleLength;
+    userProfile.periodLength = periodLength;
+    userProfile.lastPeriodDate = lastPeriodDate || null;
+    
+    cycleData.cycleLength = cycleLength;
+    cycleData.periodLength = periodLength;
+    
+    if (lastPeriodDate) {
+        const lastPeriod = new Date(lastPeriodDate);
+        const today = new Date();
+        const daysDiff = Math.floor((today - lastPeriod) / (1000 * 60 * 60 * 24));
+        cycleData.currentDay = Math.max(1, daysDiff + 1);
+        cycleData.phase = calculatePhase(cycleData.currentDay, cycleLength);
+    } else {
+        cycleData.currentDay = 1;
+        cycleData.phase = 'Unknown';
+    }
+    
+    updateCycleData();
+    saveUserData();
+    
+    closeModal();
+    updatePersonalizedUI();
+    showNotification('Settings saved successfully!', 'success');
+}
+
+function logoutUser() {
+    const userName = userProfile.name || 'User';
+    if (confirm(`${userName}, are you sure you want to log out? This will clear your session data.`)) {
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+            if (key.startsWith('paira_')) {
+                localStorage.removeItem(key);
+            }
+        });
+        
+        userProfile = {
+            name: '',
+            partnerName: '',
+            isPaired: false,
+            cycleLength: 28,
+            periodLength: 5,
+            lastPeriodDate: null,
+            lastPeriodEndDate: null
+        };
+        cycleData.currentDay = 1;
+        cycleData.phase = 'Unknown';
+        cycleData.days = cycleData.days.map(day => ({
+            ...day,
+            type: '',
+            symptoms: {}
+        }));
+        cycleData.notes = {};
+        selectedMood = '';
+        quickLogs.clear();
+        
+        saveUserData();
+        
+        closeModal();
+        showNotification('Logged out successfully. Refreshing page...', 'info');
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
     }
 }
 
-// ========================================
-// PARTNER DASHBOARD FUNCTIONALITY
-// ========================================
-
-function initializePartnerDashboard() {
-    updateMoodTip();
-    updateLearnSection();
-}
-
-function updateMoodTip() {
-    const moodTip = document.querySelector('.mood-tip p');
-    if (!moodTip) return;
-
-    const tips = {
-        'follicular': 'Sarah might be feeling energetic and optimistic! Great time for new activities or adventures together.',
-        'ovulation': 'Sarah is likely feeling confident and social. Perfect time for date nights or social gatherings!',
-        'luteal': 'Sarah might be feeling more sensitive or need extra comfort. Consider cozy nights in with her favorite treats.',
-        'menstrual': 'Sarah might need extra care and comfort. Warm hugs, favorite snacks, and understanding go a long way.'
-    };
-
-    let phase = 'luteal';
-    if (cycleData.currentDay <= 7) phase = 'menstrual';
-    else if (cycleData.currentDay <= 13) phase = 'follicular';
-    else if (cycleData.currentDay <= 15) phase = 'ovulation';
-
-    moodTip.textContent = tips[phase];
-}
-
-function updateLearnSection() {
-    const learnSection = document.querySelector('.learn-fact');
-    if (!learnSection) return;
-
-    const facts = [
-        "Did you know? The menstrual cycle is controlled by complex hormonal interactions.",
-        "Period blood is not just blood – it also contains tissue and secretions.",
-        "Exercise helps reduce menstrual cramps by releasing endorphins.",
-        "The average woman has around 400 periods in her lifetime.",
-        "Chocolate cravings are linked to magnesium deficiency during periods.",
-        "Menstrual syncing among women is still debated by science.",
-        "Tracking symptoms helps prepare for cycle changes.",
-        "Asking 'How can I help?' can be powerful during tough days."
-    ];
-
-    const randomFact = facts[Math.floor(Math.random() * facts.length)];
-    if (learnSection.querySelector('p')) {
-        learnSection.querySelector('p').textContent = randomFact;
+function clearAllData() {
+    const userName = userProfile.name || 'User';
+    if (confirm(`${userName}, are you sure you want to clear all your data? This cannot be undone.`)) {
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+            if (key.startsWith('paira_')) {
+                localStorage.removeItem(key);
+            }
+        });
+        
+        userProfile = { name: '', partnerName: '', isPaired: false, cycleLength: 28, periodLength: 5, lastPeriodDate: null, lastPeriodEndDate: null };
+        cycleData.currentDay = 1;
+        cycleData.phase = 'Unknown';
+        cycleData.days = cycleData.days.map(day => ({
+            ...day,
+            type: '',
+            symptoms: {}
+        }));
+        cycleData.notes = {};
+        selectedMood = '';
+        quickLogs.clear();
+        
+        saveUserData();
+        
+        closeModal();
+        showNotification('All data cleared. Refreshing page...', 'info');
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
     }
 }
 
-// ========================================
-// UTILITIES, STORAGE, EXPORT
-// ========================================
+// UTILITY FUNCTIONS
+function calculatePhase(cycleDay, cycleLength = 28) {
+    if (cycleDay <= 5) return 'Menstrual';
+    if (cycleDay <= Math.floor(cycleLength / 2) - 2) return 'Follicular';
+    if (cycleDay <= Math.floor(cycleLength / 2) + 2) return 'Ovulation';
+    return 'Luteal';
+}
+
+function calculatePregnancyRisk(cycleDay, cycleLength = 28) {
+    const ovulationDay = Math.floor(cycleLength / 2);
+    const fertileStart = ovulationDay - 5;
+    const fertileEnd = ovulationDay + 2;
+    
+    if (cycleDay >= fertileStart && cycleDay <= fertileEnd) {
+        if (Math.abs(cycleDay - ovulationDay) <= 1) return 'high';
+        return 'medium';
+    }
+    return 'low';
+}
 
 function showNotification(message, type = 'info') {
     const existingNotifications = document.querySelectorAll('.notification');
@@ -482,6 +964,7 @@ function showNotification(message, type = 'info') {
     }, 4000);
 }
 
+// DATA PERSISTENCE AND STORAGE
 function saveToStorage(key, data) {
     try {
         localStorage.setItem(`paira_${key}`, JSON.stringify(data));
@@ -502,27 +985,22 @@ function loadFromStorage(key, defaultValue = null) {
     }
 }
 
-function initializeUserData() {
-    const savedCycleData = loadFromStorage('cycle_data');
-    if (savedCycleData) {
-        cycleData = { ...cycleData, ...savedCycleData };
-    }
-
-    const preferences = loadFromStorage('preferences', {
-        notifications: true,
-        partnerSync: true,
-        theme: 'default'
-    });
-
-    return preferences;
-}
-
 function saveUserData() {
     saveToStorage('cycle_data', cycleData);
+    saveToStorage('user_profile', userProfile);
 }
 
+// GLOBAL FUNCTIONS FOR DEBUGGING
 if (typeof window !== 'undefined') {
     window.PairaApp = {
+        showUserSetup,
+        showUserSettings,
+        saveUserSetup,
+        saveUserSettings,
+        showPartnerSetup,
+        savePartnerInfo,
+        logoutUser,
+        clearLastPeriodDate,
         toggleLog,
         saveQuickLog,
         selectMood,
@@ -533,20 +1011,25 @@ if (typeof window !== 'undefined') {
         showNotification,
         calculatePhase,
         calculatePregnancyRisk,
-        simulateDataSync,
         saveToStorage,
         loadFromStorage,
+        saveUserData,
+        clearAllData,
         cycleData,
+        userProfile,
         selectedMood,
         quickLogs
     };
 }
 
-// Color Representation Explanation (for UI reference)
-const colorInfo = `
-- **Pink (#ff6b6b)**: Represents period days, indicating the menstrual phase.
-- **Yellow (#ffeb3b)**: Represents fertile days, highlighting the ovulation window.
-- **Green (#4CAF50)**: Indicates the current day for easy reference.
-- **Gray (default)**: Represents normal days with no specific cycle event.
-`;
-console.log(colorInfo); // This can be logged or displayed in a tooltip/info section if desired
+console.log(`
+Paira Color Guide:
+- Pink (#ff6b6b): Period days (menstrual phase)
+- Light Pink (#ffb6c1): Expected period days
+- Yellow (#ffeb3b): Fertile days (ovulation window)  
+- Green (#4CAF50): Current day indicator
+- Gray: Normal cycle days
+- Blue gradient: App theme colors
+`);
+
+console.log('Paira app initialized with personalized user data support');

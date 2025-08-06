@@ -10,7 +10,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>👋 Welcome back, Sarah!</h1>
+            <h1>👋 Welcome!</h1>
             <p>Your wellness journey continues</p>
             <div class="sync-status" id="syncStatus">🔗 Synced with Alex</div>
         </div>
@@ -90,17 +90,9 @@
             </div>
 
             <!-- Partner Messages -->
-            <div class="card">
+            <div class="card" id="partnerMessages">
                 <h3>💝 From Your Partner</h3>
-                <div class="partner-message">
-                    <p><strong>Alex sent:</strong> "Hey babe, I picked up your favorite chocolate and some herbal tea. Love you! ❤️"</p>
-                    <div class="message-time">2 hours ago</div>
-                </div>
-                <div class="partner-message">
-                    <p><strong>Mood Update:</strong> Alex noticed you might be feeling a bit low today. They're planning a cozy movie night! 🍿</p>
-                    <div class="message-time">5 hours ago</div>
-                </div>
-                <button class="btn btn-secondary" onclick="sendMessageToPartner()">Send Message to Alex</button>
+                <!-- Messages populated dynamically -->
             </div>
 
             <!-- AI Health Assistant -->
@@ -120,15 +112,9 @@
             <!-- Insights & Tips -->
             <div class="card insights">
                 <h3>💡 Personal Insights</h3>
-                <div class="insight-item">
-                    <strong>Pattern Detected:</strong> You tend to have higher energy levels during days 8-12 of your cycle. Perfect time for workouts!
-                </div>
-                <div class="insight-item">
-                    <strong>Reminder:</strong> Your period is expected in 4 days. Consider stocking up on essentials.
-                </div>
-                <div class="insight-item">
-                    <strong>Wellness Tip:</strong> Based on your luteal phase, try magnesium-rich foods to reduce bloating.
-                </div>
+                <div class="insight-item"></div>
+                <div class="insight-item"></div>
+                <div class="insight-item"></div>
             </div>
 
             <!-- Analysis Section -->
@@ -155,7 +141,11 @@
                 <div class="edit-form">
                     <div class="input-group">
                         <label>Edit Period Start Day:</label>
-                        <input type="number" id="editPeriodDay" min="1" max="31" placeholder="Enter day">
+                        <input type="date" id="editPeriodStartDate" placeholder="Select start date">
+                    </div>
+                    <div class="input-group">
+                        <label>Edit Period End Day:</label>
+                        <input type="date" id="editPeriodEndDate" placeholder="Select end date">
                     </div>
                     <div class="input-group">
                         <label>Add Note:</label>
