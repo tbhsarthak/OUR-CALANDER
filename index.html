@@ -1,24 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PAIRA.CARE</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAIRA - Care That Connects</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #fff0f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        header {
+            background: #ff8fa3;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        header img {
+            max-height: 80px;
+        }
+        nav {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 20px;
+        }
+        .login-btn {
+            background: #e75480;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-btn:hover {
+            background: #d63d6e;
+        }
+        .section {
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section h2 {
+            color: #e75480;
+            margin-bottom: 20px;
+        }
+        .footer {
+            background: #f8e1e7;
+            padding: 20px;
+            text-align: center;
+            margin-top: 40px;
+        }
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #ffe6f0;">
+<body>
+    <header>
+        <img src="paira_logo.png" alt="PAIRA Logo">
+    </header>
+    <nav>
+        <button class="login-btn" onclick="window.location.href='login.html'">Login</button>
+    </nav>
 
-  <h1>PAIRA</h1>
-  <p style="font-size: 1.2em; color: #444;">Because care starts with awareness.</p>
+    <section class="section" id="what-we-do">
+        <h2>What PAIRA Does</h2>
+        <p>PAIRA is a supportive platform designed to help couples track menstrual health together. Women can log their cycle data, while partners stay informed and offer support through custom messages and educational resources.</p>
+    </section>
 
-  <div style="margin-top: 40px;">
-  <a href="woman.html">
-    <button style="padding: 10px 20px; font-size: 16px;">I’m a Woman</button>
-  </a>
-  <a href="partner.html">
-    <button style="padding: 10px 20px; font-size: 16px; margin-left: 20px;">I’m a Partner</button>
-  </a>
-</div>
+    <section class="section" id="mission">
+        <h2>Mission and Values</h2>
+        <p>Our mission is to foster empathy and awareness in menstrual health. We value privacy, education, and connection, providing a safe space for couples to navigate this journey together.</p>
+    </section>
 
+    <section class="section" id="contact">
+        <h2>Contact Us</h2>
+        <p>Email: support@paira.care | Follow us on <a href="https://www.instagram.com/paira.care/" target="_blank">Instagram</a></p>
+    </section>
 
+    <footer class="footer">
+        <p>&copy; 2025 PAIRA. All rights reserved.</p>
+    </footer>
 </body>
 </html>
+
